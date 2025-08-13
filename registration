@@ -1,105 +1,32 @@
-Instructions to Deploy the Registration Form
-
-1. Google Sheets Setup:
-   - Create a Google Sheet with columns:
-     First Name | Last Name | Job Title | Company Name | Email | Country Code | Phone | Event | Consent | Timestamp
-
-2. Google Apps Script Setup:
-   - In Google Sheets, go to Extensions > Apps Script.
-   - Paste the provided Google Apps Script code and replace YOUR_RECAPTCHA_SECRET_KEY with your secret key from Google reCAPTCHA.
-   - Deploy as Web App: Execute as 'Me', Who has access: 'Anyone'.
-   - Copy the Web App URL and replace in script.js (already set in this package).
-
-3. Google reCAPTCHA Setup:
-   - Go to https://www.google.com/recaptcha/admin/create
-   - Register your domain (github.io domain if hosting on GitHub Pages).
-   - Get the SITE KEY and SECRET KEY.
-   - Replace YOUR_SITE_KEY in index.html.
-   - Replace YOUR_RECAPTCHA_SECRET_KEY in Apps Script.
-
-4. Deploy on GitHub Pages:
-   - Create a new repository.
-   - Upload all files from this ZIP.
-   - Commit changes.
-   - Go to Settings > Pages, choose 'main' branch, and root folder.
-   - Your form will be live at https://rajadurairaman-lgtm.github.io/csmregistration-form/
-
-5. Test the Form:
-   - Open your GitHub Pages link.
-   - Fill out the form, complete the reCAPTCHA, and submit.
-   - Check your Google Sheet for new entries.
-
-const scriptURL = 'https://script.google.com/macros/s/AKfycbyqtX75MYitTWN0dqUmuUXGS7DKtgjfiUdTN-FBVrHcmptZ6WyZAC-4r0W9SalRRs-bJQ/exec';
-const form = document.getElementById('registrationForm');
-
-form.addEventListener('submit', e => {
+document.getElementById('registrationForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
-    // Check reCAPTCHA
-    if (grecaptcha.getResponse() === '') {
-        alert('Please complete the reCAPTCHA');
-        return;
-    }
+    const formData = {
+        FirstName: this.FirstName.value,
+        LastName: this.LastName.value,
+        JobTitle: this.JobTitle.value,
+        CompanyName: this.CompanyName.value,
+        Email: this.Email.value,
+        CountryCode: this.CountryCode.value,
+        Phone: this.Phone.value,
+        Event: Array.from(document.querySelectorAll('input[name="Event"]:checked'))
+                    .map(e => e.value).join(', '),
+        Consent: this.Consent.checked ? 'Yes' : 'No'
+    };
 
-    fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                alert('Form submitted successfully!');
-                form.reset();
-                grecaptcha.reset();
-            } else {
-                alert('Submission failed: ' + data.message);
-            }
-        })
-        .catch(error => alert('Error: ' + error.message));
+    fetch("https://script.google.com/macros/s/AKfycbyqtX75MYitTWN0dqUmuUXGS7DKtgjfiUdTN-FBVrHcmptZ6WyZAC-4r0W9SalRRs-bJQ/exec", {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+    }).then(() => {
+        alert("Form submitted successfully!");
+        this.reset();
+    }).catch(err => {
+        console.error(err);
+        alert("Error submitting the form.");
+    });
 });
-body {
-    font-family: Arial, sans-serif;
-    background: #f9f9f9;
-    padding: 20px;
-}
-form {
-    max-width: 700px;
-    margin: auto;
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-label {
-    display: block;
-    font-weight: bold;
-    margin-top: 10px;
-}
-input, select, button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-.row {
-    display: flex;
-    gap: 10px;
-}
-.row > div {
-    flex: 1;
-}
-button {
-    background: #0056b3;
-    color: white;
-    border: none;
-    margin-top: 15px;
-    cursor: pointer;
-}
-button:hover {
-    background: #004494;
-}
-small {
-    font-size: 12px;
-    color: #666;
-}
 <!DOCTYPE html>
 <html>
 <head>
@@ -171,3 +98,46 @@ small {
 
 </body>
 </html>
+body {
+    font-family: Arial, sans-serif;
+    background: #f9f9f9;
+    padding: 20px;
+}
+
+form {
+    background: #fff;
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+input, select, button {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
